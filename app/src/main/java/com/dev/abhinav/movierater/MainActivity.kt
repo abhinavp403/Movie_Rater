@@ -9,27 +9,28 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.AsyncTask
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.dev.abhinav.movierater.adapter.MoviesAdapter
 import com.dev.abhinav.movierater.api.Client
 import com.dev.abhinav.movierater.api.Service
-import com.dev.abhinav.movierater.data.FavoriteDBHelper
+import com.dev.abhinav.movierater.data.FavoriteDatabase
+import com.dev.abhinav.movierater.data.FavoriteList
 import com.dev.abhinav.movierater.model.Movie
 import com.dev.abhinav.movierater.model.MoviesResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.lang.Exception
 
 class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -38,8 +39,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     private lateinit var movieList : MutableList<Movie>
     private lateinit var progressDialog : ProgressDialog
     private lateinit var swipeContainer : SwipeRefreshLayout
-    private lateinit var favoriteDBHelper: FavoriteDBHelper
-    private val activity: AppCompatActivity = this@MainActivity
+    private lateinit var favoriteDatabase: FavoriteDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,8 +89,9 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         recyclerView.itemAnimator = DefaultItemAnimator()
         recyclerView.adapter = adapter
         adapter.notifyDataSetChanged()
-        favoriteDBHelper = FavoriteDBHelper(activity)
-
+        //favoriteDatabase = FavoriteDatabase.getInstance(applicationContext)
+        //favoriteDatabase.favoriteDao().deleteAll()
+        //getAllFavorite()
         checkSortOrder()
     }
 
@@ -107,7 +108,8 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         recyclerView.itemAnimator = DefaultItemAnimator()
         recyclerView.adapter = adapter
         adapter.notifyDataSetChanged()
-        favoriteDBHelper = FavoriteDBHelper(activity)
+
+        favoriteDatabase = FavoriteDatabase.getInstance(applicationContext)
         getAllFavorite()
     }
 
@@ -116,7 +118,19 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         object : AsyncTask<Void?, Void?, Void?>() {
             override fun doInBackground(vararg params: Void?): Void? {
                 movieList.clear()
-                movieList.addAll(favoriteDBHelper.getAllFavorite())
+                val favoriteList = favoriteDatabase.favoriteDao().getAll()
+                Log.d("abc", favoriteList.toString())
+                for (faves in favoriteList) {
+                    val movie = Movie()
+                    faves.movieid?.let { movie.setId(it) }
+                    faves.mtitle?.let { movie.setTitle(it) }
+                    faves.userrating?.let { movie.setVoteAverage(it) }
+                    faves.posterpath?.let { movie.setPosterPath(it) }
+                    faves.overview?.let { movie.setOverview(it) }
+                    faves.releasedate?.let { movie.setReleaseDate(it) }
+                    movieList.add(movie)
+                }
+                Log.d("abc2", favoriteList.toString())
                 return null
             }
 
@@ -131,9 +145,9 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         var context: Context = this
         while (context is ContextWrapper) {
             if (context is Activity) {
-                return context as Activity
+                return context
             }
-            context = (context as ContextWrapper).baseContext
+            context = context.baseContext
         }
         return null
     }
@@ -149,11 +163,14 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             val service = client.getClient().create(Service::class.java)
             val call = service.getPopularMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN)
             call!!.enqueue(object : Callback<MoviesResponse?> {
-                override fun onResponse(call: Call<MoviesResponse?>, response: Response<MoviesResponse?>) {
-                    val movies : List<Movie> = response.body()!!.getResults()
+                override fun onResponse(
+                    call: Call<MoviesResponse?>,
+                    response: Response<MoviesResponse?>
+                ) {
+                    val movies: List<Movie> = response.body()!!.getResults()
                     recyclerView.adapter = MoviesAdapter(applicationContext, movies)
                     recyclerView.smoothScrollToPosition(0)
-                    if(swipeContainer.isRefreshing) {
+                    if (swipeContainer.isRefreshing) {
                         swipeContainer.isRefreshing = false
                     }
                     progressDialog.dismiss()
@@ -161,10 +178,11 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
 
                 override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
                     Log.d("Error", t.message)
-                    Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT)
+                        .show()
                 }
             })
-        } catch (e : Exception) {
+        } catch (e: Exception) {
             Log.d("Error", e.message)
             Toast.makeText(this@MainActivity, e.toString(), Toast.LENGTH_SHORT).show()
         }
@@ -181,11 +199,14 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             val service = client.getClient().create(Service::class.java)
             val call = service.getTopRatedMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN)
             call!!.enqueue(object : Callback<MoviesResponse?> {
-                override fun onResponse(call: Call<MoviesResponse?>, response: Response<MoviesResponse?>) {
-                    val movies : List<Movie> = response.body()!!.getResults()
+                override fun onResponse(
+                    call: Call<MoviesResponse?>,
+                    response: Response<MoviesResponse?>
+                ) {
+                    val movies: List<Movie> = response.body()!!.getResults()
                     recyclerView.adapter = MoviesAdapter(applicationContext, movies)
                     recyclerView.smoothScrollToPosition(0)
-                    if(swipeContainer.isRefreshing) {
+                    if (swipeContainer.isRefreshing) {
                         swipeContainer.isRefreshing = false
                     }
                     progressDialog.dismiss()
@@ -193,23 +214,26 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
 
                 override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
                     Log.d("Error", t.message)
-                    Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT)
+                        .show()
                 }
             })
-        } catch (e : Exception) {
+        } catch (e: Exception) {
             Log.d("Error", e.message)
             Toast.makeText(this@MainActivity, e.toString(), Toast.LENGTH_SHORT).show()
         }
     }
 
     override fun onSharedPreferenceChanged(p0: SharedPreferences?, s: String?) {
-        Log.d("TAG", "Preferences Updated")
         checkSortOrder()
     }
 
     private fun checkSortOrder() {
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        when (preferences.getString(this.getString(R.string.pref_sort_order_key), this.getString(R.string.pref_most_popular))) {
+        when (preferences.getString(
+            this.getString(R.string.pref_sort_order_key),
+            this.getString(R.string.pref_most_popular)
+        )) {
             this.getString(R.string.pref_most_popular) -> {
                 loadJSON()
             }

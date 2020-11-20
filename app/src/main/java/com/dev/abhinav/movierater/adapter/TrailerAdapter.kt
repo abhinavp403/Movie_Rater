@@ -29,7 +29,7 @@ class TrailerAdapter(private val context: Context, private val trailerList:  Lis
                     val videoid = trailerList[pos].getKey()
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$videoid"))
                     intent.putExtra("video_id", videoid)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(intent)
                     Toast.makeText(itemView.context, "You clicked " + clickedDataItem.getName(), Toast.LENGTH_SHORT).show()
                 }
@@ -47,7 +47,6 @@ class TrailerAdapter(private val context: Context, private val trailerList:  Lis
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        Log.d("abc", trailerList[position].getName())
         holder.title.text = trailerList[position].getName()
     }
 }

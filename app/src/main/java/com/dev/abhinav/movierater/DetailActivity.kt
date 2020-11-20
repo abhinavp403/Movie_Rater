@@ -1,12 +1,13 @@
 package com.dev.abhinav.movierater
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,8 +15,8 @@ import com.bumptech.glide.Glide
 import com.dev.abhinav.movierater.adapter.TrailerAdapter
 import com.dev.abhinav.movierater.api.Client
 import com.dev.abhinav.movierater.api.Service
-import com.dev.abhinav.movierater.data.FavoriteDBHelper
-import com.dev.abhinav.movierater.model.Movie
+import com.dev.abhinav.movierater.data.FavoriteDatabase
+import com.dev.abhinav.movierater.data.FavoriteList
 import com.dev.abhinav.movierater.model.Trailer
 import com.dev.abhinav.movierater.model.TrailerResponse
 import com.github.ivbaranov.mfb.MaterialFavoriteButton
@@ -25,7 +26,7 @@ import com.google.android.material.snackbar.Snackbar
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.lang.Exception
+
 
 class DetailActivity : AppCompatActivity() {
     private lateinit var nameOfMovie: TextView
@@ -36,9 +37,7 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: TrailerAdapter
     private lateinit var trailerList: List<Trailer>
-    private lateinit var favoriteDBHelper: FavoriteDBHelper
-    private lateinit var movie: Movie
-    private val activity: AppCompatActivity = this@DetailActivity
+    private lateinit var favoriteDatabase: FavoriteDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +46,8 @@ class DetailActivity : AppCompatActivity() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+
+        favoriteDatabase = FavoriteDatabase.getInstance(applicationContext)
 
         initCollapsingToolbar()
 
@@ -74,25 +75,29 @@ class DetailActivity : AppCompatActivity() {
         }
 
         val materialFavoriteButton: MaterialFavoriteButton = findViewById(R.id.fav_button)
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+
+
+        val sharedPrefs = getSharedPreferences("FavOrNot", MODE_PRIVATE)
+        val editor: SharedPreferences.Editor =  sharedPrefs.edit()
+//        Log.d("ppp", sharedPrefs.getBoolean("fav", true).toString())
+//        if (sharedPrefs.getBoolean("fav", true)) {
+//            materialFavoriteButton.isFavorite = true
+//        }
+
         materialFavoriteButton.setOnFavoriteChangeListener { buttonView, favorite ->
             if(favorite) {
-                val editor = getSharedPreferences("com.dev.abhinav.movierater.DetailActivity", MODE_PRIVATE)!!.edit()
-                editor.putBoolean("Favorite Added", true)
+                editor.putBoolean("fav", true)
                 editor.apply()
                 saveFavorite()
                 Snackbar.make(buttonView, "Added to Favorites", Snackbar.LENGTH_SHORT).show()
             } else {
-                val movieId = intent.extras!!.getInt("id")
-                favoriteDBHelper = FavoriteDBHelper(activity)
-                favoriteDBHelper.deleteFavorite(movieId)
-                val editor = getSharedPreferences("com.dev.abhinav.movierater.DetailActivity", MODE_PRIVATE)!!.edit()
-                editor.putBoolean("Favorite Removed", true)
+                removeFavorite()
+                editor.putBoolean("fav", false)
                 editor.apply()
                 Snackbar.make(buttonView, "Removed from Favorites", Snackbar.LENGTH_SHORT).show()
             }
         }
-
+        Log.d("ppp", editor.toString())
         initViews()
     }
 
@@ -102,7 +107,7 @@ class DetailActivity : AppCompatActivity() {
         val appBarLayout: AppBarLayout = findViewById(R.id.appbar)
         appBarLayout.setExpanded(true)
 
-        appBarLayout.addOnOffsetChangedListener(object: AppBarLayout.OnOffsetChangedListener {
+        appBarLayout.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
             var isShow = false
             var scrollRange = -1
 
@@ -143,7 +148,7 @@ class DetailActivity : AppCompatActivity() {
             val call = service.getMovieTrailer(movieId, BuildConfig.THE_MOVIE_DB_API_TOKEN)
             call!!.enqueue(object : Callback<TrailerResponse?> {
                 override fun onResponse(call: Call<TrailerResponse?>, response: Response<TrailerResponse?>) {
-                    val trailers : List<Trailer> = response.body()!!.getResults()
+                    val trailers: List<Trailer> = response.body()!!.getResults()
                     recyclerView.adapter = TrailerAdapter(applicationContext, trailers)
                     recyclerView.smoothScrollToPosition(0)
                 }
@@ -153,25 +158,31 @@ class DetailActivity : AppCompatActivity() {
                     Toast.makeText(this@DetailActivity, "Error fetching trailer data", Toast.LENGTH_SHORT).show()
                 }
             })
-        } catch (e : Exception) {
+        } catch (e: Exception) {
             Log.d("Error", e.message)
             Toast.makeText(this@DetailActivity, e.toString(), Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun saveFavorite() {
-        favoriteDBHelper = FavoriteDBHelper(activity)
-        movie = Movie()
-        val movieId = intent.extras!!.getInt("id")
-        val rate = intent.extras!!.getString("vote_average")
-        val poster = intent.extras!!.getString("poster_path")
-        movie.setId(movieId)
-        movie.setOriginalTitle(nameOfMovie.text.toString().trim())
-        movie.setPosterPath(poster!!)
-        movie.setVoteAverage(rate!!.toDouble())
-        movie.setOverview(plotSynopsis.text.toString().trim())
+        val favoriteList = FavoriteList()
+        favoriteList.movieid = intent.extras!!.getInt("id")
+        favoriteList.mtitle = nameOfMovie.text.toString().trim()
+        favoriteList.posterpath = intent.extras!!.getString("poster_path")
+        favoriteList.userrating = intent.extras!!.getString("vote_average")!!.toDouble()
+        favoriteList.overview = plotSynopsis.text.toString().trim()
+        favoriteList.releasedate = releaseDate.text.toString().trim()
+        favoriteDatabase.favoriteDao().insert(favoriteList)
+    }
 
-        //favoriteDBHelper.addFavorite(movie)
-
+    private fun removeFavorite() {
+        val favoriteList = FavoriteList()
+        favoriteList.movieid = intent.extras!!.getInt("id")
+        favoriteList.mtitle = nameOfMovie.text.toString().trim()
+        favoriteList.posterpath = intent.extras!!.getString("poster_path")
+        favoriteList.userrating = intent.extras!!.getString("vote_average")!!.toDouble()
+        favoriteList.overview = plotSynopsis.text.toString().trim()
+        favoriteList.releasedate = releaseDate.text.toString().trim()
+        favoriteDatabase.favoriteDao().delete(favoriteList)
     }
 }
