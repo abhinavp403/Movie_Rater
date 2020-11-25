@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="150dp"
+    android:layout_height="wrap_content">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/profilepic"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:src="@drawable/profile"
+        app:civ_border_color="#f23b5a"
+        app:civ_border_width="2dp" />
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/profilepic"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:paddingStart="@dimen/movie_title_padding"
+        android:paddingEnd="@dimen/movie_title_padding"
+        android:paddingTop="@dimen/movie_title_padding"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="18sp"/>
+
+    <TextView
+        android:id="@+id/character"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/name"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:paddingStart="@dimen/movie_title_padding"
+        android:paddingEnd="@dimen/movie_title_padding"
+        android:paddingTop="@dimen/movie_title_padding"
+        android:textColor="@color/black"
+        android:textSize="14sp"/>
+</RelativeLayout>

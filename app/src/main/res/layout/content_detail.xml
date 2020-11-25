@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:card_view="http://schemas.android.com/tools"
     android:background="@color/viewBg"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.dev.abhinav.movierater.DetailActivity"
@@ -15,103 +15,201 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <ScrollView
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:showIn="@layout/activity_detail">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <TextView
                     android:id="@+id/title"
-                    android:layout_width="match_parent"
+                    android:layout_width="300dp"
                     android:layout_height="wrap_content"
                     android:padding="@dimen/padding_layout"
                     android:layout_marginTop="@dimen/layout_margin_top"
                     android:textSize="20sp"
                     android:textColor="@color/black"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    android:layout_marginStart="16dp"
-                    tools:layout_constraintTop_creator = "1"
-                    tools:layout_constraintStart_creator = "1"/>
+                    android:layout_marginStart="16dp" />
 
-                <TextView
-                    android:id="@+id/userrating"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="@dimen/padding_layout"
-                    android:layout_marginTop="@dimen/layout_margin_top"
-                    android:textSize="20sp"
-                    android:textColor="@color/black"
-                    app:layout_constraintTop_toBottomOf="@+id/title"
-                    app:layout_constraintStart_toStartOf="parent"
-                    android:layout_marginStart="16dp"
-                    tools:layout_constraintTop_creator = "1" />
+                <com.github.ivbaranov.mfb.MaterialFavoriteButton
+                    android:id="@+id/fav_button"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_alignParentEnd="true"
+                    android:background="@color/colorPrimary" />
 
-                <TextView
-                    android:id="@+id/releasedate"
+                <View
+                    android:id="@+id/view"
+                    android:layout_below="@+id/title"
+                    android:layout_marginTop="5dp"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/layout_margin_left"
-                    android:padding="@dimen/padding_layout"
+                    android:layout_height="1dp"
+                    android:background="#c0c0c0"/>
+
+                <RelativeLayout
+                    android:id="@+id/rl2"
                     android:layout_marginTop="@dimen/layout_margin_top"
-                    android:textSize="20sp"
-                    android:textColor="@color/black"
-                    app:layout_constraintTop_toBottomOf="@+id/userrating"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    android:layout_below="@+id/title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/releasedate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/layout_margin_left"
+                        android:padding="@dimen/padding_layout"
+                        android:layout_marginTop="@dimen/layout_margin_top"
+                        android:textSize="14sp"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/userrating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/layout_margin_left"
+                        android:padding="@dimen/padding_layout"
+                        android:layout_marginTop="@dimen/layout_margin_top"
+                        android:layout_toEndOf="@+id/releasedate"
+                        android:textSize="14sp"
+                        android:textColor="@color/black" />
+                </RelativeLayout>
 
                 <TextView
                     android:id="@+id/plotsynopsis"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/layout_margin_left"
+                    android:layout_marginStart="@dimen/layout_margin_left"
                     android:padding="@dimen/padding_layout"
                     android:layout_marginTop="@dimen/layout_margin_top"
-                    android:textSize="20sp"
+                    android:textSize="14sp"
                     android:textColor="@color/black"
-                    app:layout_constraintTop_toBottomOf="@+id/releasedate"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    android:layout_below="@+id/rl2"/>
 
-                <TextView
-                    android:id="@+id/thumbnailUrl"
+                <View
+                    android:id="@+id/view2"
+                    android:layout_below="@+id/plotsynopsis"
+                    android:layout_marginTop="5dp"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:visibility="invisible"
-                    tools:ignore="MissingConstraints" />
+                    android:layout_height="1dp"
+                    android:background="#c0c0c0"/>
 
                 <TextView
                     android:id="@+id/trailer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/trailer"
-                    android:textSize="30sp"
+                    android:layout_marginStart="@dimen/layout_margin_left"
+                    android:layout_marginTop="@dimen/layout_margin_top"
+                    android:textSize="25sp"
                     android:textColor="@color/black"
-                    app:layout_constraintTop_toBottomOf="@+id/plotsynopsis"
-                    app:layout_constraintStart_toStartOf="parent"/>
+                    android:layout_below="@+id/plotsynopsis"/>
 
-                <com.github.ivbaranov.mfb.MaterialFavoriteButton
-                    android:id="@+id/fav_button"
-                    android:layout_width="100dp"
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/card_view_trailer"
+                    android:layout_below="@id/trailer"
+                    android:layout_width="match_parent"
                     android:layout_height="100dp"
-                    android:layout_marginStart="170dp"
-                    android:background="@color/colorPrimary"
-                    app:layout_constraintTop_toBottomOf="@+id/title"
-                    app:layout_constraintStart_toStartOf="@+id/userrating" />
+                    android:layout_gravity="center"
+                    android:layout_margin="@dimen/card_margin"
+                    android:elevation="2dp"
+                    card_view:cardCornerRadius="@dimen/card_movie_radius">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/viewBg">
+
+                        <ImageView
+                            android:id="@+id/trailer_iv"
+                            android:layout_width="50dp"
+                            android:layout_height="100dp"
+                            android:src="@drawable/youtube"
+                            android:gravity="center"
+                            android:layout_marginStart="@dimen/activity_horizontal_margin"
+                            android:layout_alignParentTop="true"
+                            android:layout_alignParentStart="true" />
+
+                        <TextView
+                            android:id="@+id/trailer_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="@dimen/movie_title_padding"
+                            android:paddingEnd="@dimen/movie_title_padding"
+                            android:paddingTop="@dimen/movie_title_padding"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:layout_centerVertical="true"
+                            android:layout_toEndOf="@+id/trailer_iv" />
+                    </RelativeLayout>
+                </androidx.cardview.widget.CardView>
+
+                <View
+                    android:id="@+id/view3"
+                    android:layout_below="@+id/card_view_trailer"
+                    android:layout_marginTop="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#c0c0c0"/>
+
+                <TextView
+                    android:id="@+id/cast"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cast"
+                    android:layout_marginStart="@dimen/layout_margin_left"
+                    android:layout_marginTop="@dimen/layout_margin_top"
+                    android:textSize="25sp"
+                    android:textColor="@color/black"
+                    android:layout_below="@+id/card_view_trailer"/>
 
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycler_view1"
+                    android:id="@+id/recycler_view_cast"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="horizontal"
+                    android:clipToPadding="false"
+                    android:layout_below="@+id/cast" />
+
+                <View
+                    android:id="@+id/view4"
+                    android:layout_below="@+id/recycler_view_cast"
+                    android:layout_marginTop="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#c0c0c0"/>
+
+                <TextView
+                    android:id="@+id/crew"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/crew"
+                    android:layout_marginStart="@dimen/layout_margin_left"
+                    android:layout_marginTop="@dimen/layout_margin_top"
+                    android:textSize="25sp"
+                    android:textColor="@color/black"
+                    android:layout_below="@+id/recycler_view_cast"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_view_crew"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clipToPadding="false"
-                    android:scrollbars="vertical"
-                    app:layout_constraintTop_toBottomOf="@+id/trailer"
-                    app:layout_constraintStart_toStartOf="parent"/>
+                    android:scrollbars="horizontal"
+                    android:layout_below="@+id/crew" />
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </ScrollView>
+                <View
+                    android:id="@+id/view5"
+                    android:layout_below="@+id/recycler_view_crew"
+                    android:layout_marginTop="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#c0c0c0"/>
+
+            </RelativeLayout>
+        </androidx.core.widget.NestedScrollView>
     </LinearLayout>
 </RelativeLayout>

@@ -12,4 +12,6 @@
     <string name="pref_highest_rated">Higest Rated</string>
     <string name="trailer">Trailer</string>
     <string name="favorite">Favorite Movies</string>
+    <string name="cast">Cast</string>
+    <string name="crew">Crew</string>
 </resources>

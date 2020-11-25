@@ -8,18 +8,6 @@ class TrailerResponse (
 ) {
     constructor() : this(0, ArrayList<Trailer>())
 
-    fun setIdTrailer(id_trailer: Int) {
-        this.id_trailer = id_trailer
-    }
-
-    fun setResults(results: List<Trailer>) {
-        this.results = results
-    }
-
-    fun getIdTrailer(): Int {
-        return id_trailer
-    }
-
     fun getResults(): List<Trailer> {
         return results
     }

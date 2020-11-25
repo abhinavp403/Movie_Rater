@@ -1,5 +1,6 @@
 package com.dev.abhinav.movierater.api
 
+import com.dev.abhinav.movierater.model.CreditResponse
 import com.dev.abhinav.movierater.model.MoviesResponse
 import com.dev.abhinav.movierater.model.TrailerResponse
 import retrofit2.Call
@@ -17,4 +18,7 @@ interface Service {
 
     @GET("movie/{movie_id}/videos")
     fun getMovieTrailer(@Path("movie_id") id: Int?, @Query("api_key") apiKey: String?): Call<TrailerResponse?>?
+
+    @GET("movie/{movie_id}/credits")
+    fun getCredits(@Path("movie_id") id: Int?, @Query("api_key") apiKey: String?): Call<CreditResponse?>?
 }

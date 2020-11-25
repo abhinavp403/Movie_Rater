@@ -8,14 +8,6 @@ class Trailer (
 ) {
     constructor() : this("", "")
 
-    fun setKey(key: String) {
-        this.key = key
-    }
-
-    fun setName(name: String) {
-        this.name = name
-    }
-
     fun getKey(): String {
         return key
     }

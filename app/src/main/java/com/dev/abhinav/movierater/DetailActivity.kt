@@ -1,24 +1,26 @@
 package com.dev.abhinav.movierater
 
+import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.dev.abhinav.movierater.adapter.TrailerAdapter
+import com.dev.abhinav.movierater.adapter.CastAdapter
+import com.dev.abhinav.movierater.adapter.CrewAdapter
 import com.dev.abhinav.movierater.api.Client
 import com.dev.abhinav.movierater.api.Service
 import com.dev.abhinav.movierater.data.FavoriteDatabase
 import com.dev.abhinav.movierater.data.FavoriteList
-import com.dev.abhinav.movierater.model.Trailer
-import com.dev.abhinav.movierater.model.TrailerResponse
+import com.dev.abhinav.movierater.model.*
 import com.github.ivbaranov.mfb.MaterialFavoriteButton
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
@@ -27,17 +29,21 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-
 class DetailActivity : AppCompatActivity() {
     private lateinit var nameOfMovie: TextView
     private lateinit var plotSynopsis: TextView
     private lateinit var userRating: TextView
     private lateinit var releaseDate: TextView
     private lateinit var imageView: ImageView
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: TrailerAdapter
-    private lateinit var trailerList: List<Trailer>
     private lateinit var favoriteDatabase: FavoriteDatabase
+
+    private lateinit var recyclerViewCast: RecyclerView
+    private lateinit var castAdapter: CastAdapter
+    private lateinit var castList: List<Cast>
+
+    private lateinit var recyclerViewCrew: RecyclerView
+    private lateinit var crewAdapter: CrewAdapter
+    private lateinit var crewList: List<Crew>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,7 +103,7 @@ class DetailActivity : AppCompatActivity() {
                 Snackbar.make(buttonView, "Removed from Favorites", Snackbar.LENGTH_SHORT).show()
             }
         }
-        Log.d("ppp", editor.toString())
+
         initViews()
     }
 
@@ -127,17 +133,29 @@ class DetailActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
-        recyclerView = findViewById(R.id.recycler_view1)
-        trailerList = ArrayList()
-        adapter = TrailerAdapter(this, trailerList)
-        recyclerView.layoutManager = LinearLayoutManager(applicationContext)
-        recyclerView.adapter = adapter
-        adapter.notifyDataSetChanged()
-        loadJSON()
+        loadJSONTrailer()
+
+        recyclerViewCast = findViewById(R.id.recycler_view_cast)
+        castList = ArrayList()
+        castAdapter = CastAdapter(this, castList)
+        recyclerViewCast.layoutManager = LinearLayoutManager(this@DetailActivity, LinearLayoutManager.HORIZONTAL, false)
+        recyclerViewCast.adapter = castAdapter
+        castAdapter.notifyDataSetChanged()
+        loadJSONCast()
+
+        recyclerViewCrew = findViewById(R.id.recycler_view_crew)
+        crewList = ArrayList()
+        crewAdapter = CrewAdapter(this, crewList)
+        recyclerViewCrew.layoutManager = LinearLayoutManager(this@DetailActivity, LinearLayoutManager.HORIZONTAL, false)
+        recyclerViewCrew.adapter = crewAdapter
+        crewAdapter.notifyDataSetChanged()
+        loadJSONCrew()
     }
 
-    private fun loadJSON() {
+    private fun loadJSONTrailer() {
         val movieId = intent.extras!!.getInt("id")
+        val title: TextView = findViewById(R.id.trailer_title)
+        val trailerCardView: CardView = findViewById(R.id.card_view_trailer)
         try {
             if (BuildConfig.THE_MOVIE_DB_API_TOKEN.isEmpty()) {
                 Toast.makeText(this@DetailActivity, "Please obtain API Key first", Toast.LENGTH_SHORT).show()
@@ -149,17 +167,80 @@ class DetailActivity : AppCompatActivity() {
             call!!.enqueue(object : Callback<TrailerResponse?> {
                 override fun onResponse(call: Call<TrailerResponse?>, response: Response<TrailerResponse?>) {
                     val trailers: List<Trailer> = response.body()!!.getResults()
-                    recyclerView.adapter = TrailerAdapter(applicationContext, trailers)
-                    recyclerView.smoothScrollToPosition(0)
+                    val trailer = trailers[0]
+                    title.text = trailer.getName()
+                    trailerCardView.setOnClickListener {
+                        val videoid = trailer.getKey()
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$videoid"))
+                        intent.putExtra("video_id", videoid)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        applicationContext.startActivity(intent)
+                    }
                 }
 
                 override fun onFailure(call: Call<TrailerResponse?>, t: Throwable) {
-                    Log.d("Error", t.message)
+                    Log.d("Error", t.message.toString())
                     Toast.makeText(this@DetailActivity, "Error fetching trailer data", Toast.LENGTH_SHORT).show()
                 }
             })
         } catch (e: Exception) {
-            Log.d("Error", e.message)
+            Log.d("Error", e.message.toString())
+            Toast.makeText(this@DetailActivity, e.toString(), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadJSONCast() {
+        val movieId = intent.extras!!.getInt("id")
+        try {
+            if (BuildConfig.THE_MOVIE_DB_API_TOKEN.isEmpty()) {
+                Toast.makeText(this@DetailActivity, "Please obtain API Key first", Toast.LENGTH_SHORT).show()
+                return
+            }
+            val client = Client()
+            val service = client.getClient().create(Service::class.java)
+            val call = service.getCredits(movieId, BuildConfig.THE_MOVIE_DB_API_TOKEN)
+            call!!.enqueue(object : Callback<CreditResponse?> {
+                override fun onResponse(call: Call<CreditResponse?>, response: Response<CreditResponse?>) {
+                    val casts: List<Cast> = response.body()!!.getCast()
+                    recyclerViewCast.adapter = CastAdapter(applicationContext, casts)
+                    recyclerViewCast.smoothScrollToPosition(0)
+                }
+
+                override fun onFailure(call: Call<CreditResponse?>, t: Throwable) {
+                    Log.d("Error", t.message.toString())
+                    Toast.makeText(this@DetailActivity, "Error fetching cast data", Toast.LENGTH_SHORT).show()
+                }
+            })
+        } catch (e: Exception) {
+            Log.d("Error", e.message.toString())
+            Toast.makeText(this@DetailActivity, e.toString(), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadJSONCrew() {
+        val movieId = intent.extras!!.getInt("id")
+        try {
+            if (BuildConfig.THE_MOVIE_DB_API_TOKEN.isEmpty()) {
+                Toast.makeText(this@DetailActivity, "Please obtain API Key first", Toast.LENGTH_SHORT).show()
+                return
+            }
+            val client = Client()
+            val service = client.getClient().create(Service::class.java)
+            val call = service.getCredits(movieId, BuildConfig.THE_MOVIE_DB_API_TOKEN)
+            call!!.enqueue(object : Callback<CreditResponse?> {
+                override fun onResponse(call: Call<CreditResponse?>, response: Response<CreditResponse?>) {
+                    val crews: List<Crew> = response.body()!!.getCrew()
+                    recyclerViewCrew.adapter = CrewAdapter(applicationContext, crews)
+                    recyclerViewCrew.smoothScrollToPosition(0)
+                }
+
+                override fun onFailure(call: Call<CreditResponse?>, t: Throwable) {
+                    Log.d("Error", t.message.toString())
+                    Toast.makeText(this@DetailActivity, "Error fetching crew data", Toast.LENGTH_SHORT).show()
+                }
+            })
+        } catch (e: Exception) {
+            Log.d("Error", e.message.toString())
             Toast.makeText(this@DetailActivity, e.toString(), Toast.LENGTH_SHORT).show()
         }
     }
