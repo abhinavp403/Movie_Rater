@@ -12,7 +12,7 @@ import com.bumptech.glide.Glide
 import com.dev.abhinav.movierater.R
 import com.dev.abhinav.movierater.model.Crew
 
-class CrewAdapter(private val context: Context, private val crewList:  List<Crew>) : RecyclerView.Adapter<CrewAdapter.ViewHolder>() {
+class CrewAdapter(private val context: Context, private val crewList: List<Crew>) : RecyclerView.Adapter<CrewAdapter.ViewHolder>() {
 
     inner class ViewHolder(@NonNull itemView: View) : RecyclerView.ViewHolder(itemView) {
         var name: TextView = itemView.findViewById(R.id.name)

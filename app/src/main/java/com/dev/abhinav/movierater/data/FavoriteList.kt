@@ -16,8 +16,8 @@ class FavoriteList {
     @ColumnInfo(name = "title")
     var mtitle: String? = null
 
-    @ColumnInfo(name = "userrating")
-    var userrating: Double? = null
+    @ColumnInfo(name = "runtime")
+    var runtime: Int? = null
 
     @ColumnInfo(name = "posterpath")
     var posterpath: String? = null

@@ -15,7 +15,7 @@ import com.dev.abhinav.movierater.DetailActivity
 import com.dev.abhinav.movierater.R
 import com.dev.abhinav.movierater.model.Movie
 
-class MoviesAdapter(private val context: Context, private val movieList:  List<Movie>) : RecyclerView.Adapter<MoviesAdapter.ViewHolder>() {
+class MoviesAdapter(private val context: Context, private val movieList: List<Movie>) : RecyclerView.Adapter<MoviesAdapter.ViewHolder>() {
 
     inner class ViewHolder(@NonNull itemView: View) : RecyclerView.ViewHolder(itemView) {
         var title: TextView = itemView.findViewById(R.id.title)
@@ -28,15 +28,14 @@ class MoviesAdapter(private val context: Context, private val movieList:  List<M
                 if (pos != RecyclerView.NO_POSITION) {
                     val clickedDataItem = movieList[pos]
                     val intent = Intent(context, DetailActivity::class.java)
-                    intent.putExtra("original_title", movieList[pos].getOriginalTitle())
+                    intent.putExtra("title", movieList[pos].getTitle())
                     intent.putExtra("poster_path", movieList[pos].getPosterPath())
                     intent.putExtra("overview", movieList[pos].getOverview())
-                    intent.putExtra("vote_average", movieList[pos].getVoteAverage().toString())
                     intent.putExtra("release_date", movieList[pos].getReleaseDate())
                     intent.putExtra("id", movieList[pos].getId())
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(intent)
-                    Toast.makeText(itemView.context, "You clicked " + clickedDataItem.getOriginalTitle(), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(itemView.context, "You clicked " + clickedDataItem.getTitle(), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -52,10 +51,9 @@ class MoviesAdapter(private val context: Context, private val movieList:  List<M
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.title.text = movieList[position].getOriginalTitle()
+        holder.title.text = movieList[position].getTitle()
         val vote = movieList[position].getVoteAverage().toString()
         holder.userrating.text = vote
-
         Glide.with(context).load(movieList[position].getPosterPath()).placeholder(R.drawable.loading).into(holder.thumbnail)
     }
 }

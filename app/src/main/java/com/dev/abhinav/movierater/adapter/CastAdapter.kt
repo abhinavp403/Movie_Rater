@@ -12,7 +12,7 @@ import com.bumptech.glide.Glide
 import com.dev.abhinav.movierater.R
 import com.dev.abhinav.movierater.model.Cast
 
-class CastAdapter(private val context: Context, private val castList:  List<Cast>) : RecyclerView.Adapter<CastAdapter.ViewHolder>() {
+class CastAdapter(private val context: Context, private val castList: List<Cast>) : RecyclerView.Adapter<CastAdapter.ViewHolder>() {
 
     inner class ViewHolder(@NonNull itemView: View) : RecyclerView.ViewHolder(itemView) {
         var name: TextView = itemView.findViewById(R.id.name)

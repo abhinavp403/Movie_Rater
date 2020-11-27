@@ -19,7 +19,8 @@ class Movie (
     @field:SerializedName("vote_average") private var voteAverage: Double
 ) {
     constructor() : this("", false, "", "", ArrayList<Int>(), 0, "", "", "", "", 0.0, 0, false, 0.0)
-    private var baseImageUrl : String = "http://image.tmdb.org/t/p/w500"
+
+    private var baseImageUrl: String = "http://image.tmdb.org/t/p/w500"
 
     fun setPosterPath(posterPath: String) {
         this.posterPath = posterPath
@@ -76,7 +77,7 @@ class Movie (
     fun setVoteAverage(voteAverage: Double) {
         this.voteAverage = voteAverage
     }
-    
+
     fun getPosterPath(): String {
         return "http://image.tmdb.org/t/p/w500$posterPath"
     }

@@ -19,13 +19,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.room.Room
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.dev.abhinav.movierater.adapter.MoviesAdapter
 import com.dev.abhinav.movierater.api.Client
 import com.dev.abhinav.movierater.api.Service
 import com.dev.abhinav.movierater.data.FavoriteDatabase
-import com.dev.abhinav.movierater.data.FavoriteList
 import com.dev.abhinav.movierater.model.Movie
 import com.dev.abhinav.movierater.model.MoviesResponse
 import retrofit2.Call
@@ -124,7 +122,6 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
                     val movie = Movie()
                     faves.movieid?.let { movie.setId(it) }
                     faves.mtitle?.let { movie.setTitle(it) }
-                    faves.userrating?.let { movie.setVoteAverage(it) }
                     faves.posterpath?.let { movie.setPosterPath(it) }
                     faves.overview?.let { movie.setOverview(it) }
                     faves.releasedate?.let { movie.setReleaseDate(it) }
@@ -163,10 +160,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             val service = client.getClient().create(Service::class.java)
             val call = service.getPopularMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN)
             call!!.enqueue(object : Callback<MoviesResponse?> {
-                override fun onResponse(
-                    call: Call<MoviesResponse?>,
-                    response: Response<MoviesResponse?>
-                ) {
+                override fun onResponse(call: Call<MoviesResponse?>, response: Response<MoviesResponse?>) {
                     val movies: List<Movie> = response.body()!!.getResults()
                     recyclerView.adapter = MoviesAdapter(applicationContext, movies)
                     recyclerView.smoothScrollToPosition(0)
@@ -177,13 +171,13 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
                 }
 
                 override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
-                    Log.d("Error", t.message)
+                    Log.d("Error", t.message.toString())
                     Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT)
                         .show()
                 }
             })
         } catch (e: Exception) {
-            Log.d("Error", e.message)
+            Log.d("Error", e.message.toString())
             Toast.makeText(this@MainActivity, e.toString(), Toast.LENGTH_SHORT).show()
         }
     }
@@ -199,10 +193,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             val service = client.getClient().create(Service::class.java)
             val call = service.getTopRatedMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN)
             call!!.enqueue(object : Callback<MoviesResponse?> {
-                override fun onResponse(
-                    call: Call<MoviesResponse?>,
-                    response: Response<MoviesResponse?>
-                ) {
+                override fun onResponse(call: Call<MoviesResponse?>, response: Response<MoviesResponse?>) {
                     val movies: List<Movie> = response.body()!!.getResults()
                     recyclerView.adapter = MoviesAdapter(applicationContext, movies)
                     recyclerView.smoothScrollToPosition(0)
@@ -213,13 +204,13 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
                 }
 
                 override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
-                    Log.d("Error", t.message)
+                    Log.d("Error", t.message.toString())
                     Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT)
                         .show()
                 }
             })
         } catch (e: Exception) {
-            Log.d("Error", e.message)
+            Log.d("Error", e.message.toString())
             Toast.makeText(this@MainActivity, e.toString(), Toast.LENGTH_SHORT).show()
         }
     }

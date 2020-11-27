@@ -18,6 +18,16 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="Theme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
-    <style name="Theme.PopupOverlay" parent="Theme.AppCompat.Light"/>
+    <style name="Theme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.PopupOverlay" parent="Theme.AppCompat.Light" />
+
+    <style name="Theme.MovieRater.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.MovieRater.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.MovieRater.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

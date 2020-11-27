@@ -4,7 +4,7 @@
     <string name="name_movie">Movie Title</string>
     <string name="movie_details">Movie Details</string>
     <string name="plot">Plot</string>
-    <string name="rating">User Rating</string>
+    <string name="rating">Rating</string>
     <string name="release">Release Date</string>
     <string name="pref_sort_order_label">Sort Order</string>
     <string name="pref_sort_order_key">sortOrder</string>
@@ -14,4 +14,16 @@
     <string name="favorite">Favorite Movies</string>
     <string name="cast">Cast</string>
     <string name="crew">Crew</string>
+    <string name="studios">Studios</string>
+    <string name="genres">Genres</string>
+    <string name="openin">Open In</string>
+    <string name="title_activity_test">test</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 </resources>
