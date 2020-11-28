@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="4dip">
+
+    <EditText
+        android:id="@+id/textbox"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="10dp"
+        android:background="@layout/border"
+        android:gravity="start|top"
+        android:hint="Write your review here"
+        android:inputType="textMultiLine"
+        android:textColor="@color/black"
+        android:padding="10dp"
+        android:textSize="14sp" />
+</LinearLayout>

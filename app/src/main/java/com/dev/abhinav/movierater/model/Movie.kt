@@ -20,8 +20,6 @@ class Movie (
 ) {
     constructor() : this("", false, "", "", ArrayList<Int>(), 0, "", "", "", "", 0.0, 0, false, 0.0)
 
-    private var baseImageUrl: String = "http://image.tmdb.org/t/p/w500"
-
     fun setPosterPath(posterPath: String) {
         this.posterPath = posterPath
     }
@@ -115,7 +113,7 @@ class Movie (
     }
 
     fun getBackdropPath(): String {
-        return backdropPath
+        return "http://image.tmdb.org/t/p/w500$backdropPath"
     }
 
     fun getPopularity(): Double {

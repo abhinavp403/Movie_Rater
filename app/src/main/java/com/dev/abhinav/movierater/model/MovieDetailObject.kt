@@ -5,16 +5,9 @@ import com.google.gson.annotations.SerializedName
 class MovieDetailObject (
     @field:SerializedName("id") private var id: Int,
     @field:SerializedName("name") private var name: String,
+    @field:SerializedName("english_name") private var language: String
 ) {
-    constructor() : this(0, "")
-
-    fun setId(id: Int) {
-        this.id = id
-    }
-
-    fun setName(name: String) {
-        this.name = name
-    }
+    constructor() : this(0, "", "")
 
     fun getId(): Int {
         return id
@@ -22,5 +15,9 @@ class MovieDetailObject (
 
     fun getName(): String {
         return name
+    }
+
+    fun getLanguage(): String {
+        return language
     }
 }

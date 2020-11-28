@@ -29,7 +29,7 @@ class MoviesAdapter(private val context: Context, private val movieList: List<Mo
                     val clickedDataItem = movieList[pos]
                     val intent = Intent(context, DetailActivity::class.java)
                     intent.putExtra("title", movieList[pos].getTitle())
-                    intent.putExtra("poster_path", movieList[pos].getPosterPath())
+                    intent.putExtra("backdrop_path", movieList[pos].getBackdropPath())
                     intent.putExtra("overview", movieList[pos].getOverview())
                     intent.putExtra("release_date", movieList[pos].getReleaseDate())
                     intent.putExtra("id", movieList[pos].getId())

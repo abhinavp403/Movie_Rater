@@ -8,10 +8,7 @@ import android.util.Log
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.widget.ImageView
-import android.widget.RatingBar
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -44,6 +41,7 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var plotSynopsis: TextView
     private lateinit var tagline: TextView
     private lateinit var runtime: TextView
+    private lateinit var languages: TextView
     private lateinit var releaseDate: TextView
     private lateinit var imageView: ImageView
     private lateinit var ratingBar: RatingBar
@@ -73,6 +71,7 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var studioList: List<MovieDetailObject>
     private lateinit var movieObjectAdapter: MovieObjectAdapter
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail)
@@ -90,6 +89,7 @@ class DetailActivity : AppCompatActivity() {
         tagline = findViewById(R.id.tagline)
         plotSynopsis = findViewById(R.id.plotsynopsis)
         runtime = findViewById(R.id.runtime)
+        languages = findViewById(R.id.language)
         releaseDate = findViewById(R.id.releasedate)
         ratingBar = findViewById(R.id.ratingbar)
         fabMain = findViewById(R.id.fab)
@@ -108,7 +108,7 @@ class DetailActivity : AppCompatActivity() {
 
         val intent = intent
         if (intent.hasExtra("title")) {
-            val thumbnail = intent.extras!!.getString("poster_path")
+            val thumbnail = intent.extras!!.getString("backdrop_path")
             val movieName = intent.extras!!.getString("title")
             val synopsis = intent.extras!!.getString("overview")
             val dateOfRelease = intent.extras!!.getString("release_date")
@@ -201,7 +201,19 @@ class DetailActivity : AppCompatActivity() {
         }
 
         fab2.setOnClickListener {
-            Toast.makeText(applicationContext, "Write Review", Toast.LENGTH_SHORT).show()
+            val builder = AlertDialog.Builder(this)
+            builder.setMessage("Write Review")
+            val dialogLayout: View = layoutInflater.inflate(R.layout.review_dialog, null)
+            val textBox = dialogLayout.findViewById<EditText>(R.id.textbox)
+            builder.setView(dialogLayout)
+            builder.setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+            builder.setNegativeButton("Cancel") { dialog, _ ->
+                dialog.cancel()
+            }
+            builder.create()
+            builder.show()
         }
 
         fab1.setOnClickListener {
@@ -226,22 +238,14 @@ class DetailActivity : AppCompatActivity() {
         recyclerViewGenre = findViewById(R.id.recycler_view_genre)
         movieDetailObjectList = ArrayList()
         movieObjectAdapter = MovieObjectAdapter(this, movieDetailObjectList)
-        recyclerViewGenre.layoutManager = LinearLayoutManager(
-            this@DetailActivity,
-            LinearLayoutManager.HORIZONTAL,
-            false
-        )
+        recyclerViewGenre.layoutManager = LinearLayoutManager(this@DetailActivity, LinearLayoutManager.HORIZONTAL, false)
         recyclerViewGenre.adapter = movieObjectAdapter
         movieObjectAdapter.notifyDataSetChanged()
 
         recyclerViewStudio = findViewById(R.id.recycler_view_studio)
         studioList = ArrayList()
         movieObjectAdapter = MovieObjectAdapter(this, studioList)
-        recyclerViewStudio.layoutManager = LinearLayoutManager(
-            this@DetailActivity,
-            LinearLayoutManager.HORIZONTAL,
-            false
-        )
+        recyclerViewStudio.layoutManager = LinearLayoutManager(this@DetailActivity, LinearLayoutManager.HORIZONTAL, false)
         recyclerViewStudio.adapter = movieObjectAdapter
         movieObjectAdapter.notifyDataSetChanged()
 
@@ -252,11 +256,7 @@ class DetailActivity : AppCompatActivity() {
         recyclerViewCast = findViewById(R.id.recycler_view_cast)
         castList = ArrayList()
         castAdapter = CastAdapter(this, castList)
-        recyclerViewCast.layoutManager = LinearLayoutManager(
-            this@DetailActivity,
-            LinearLayoutManager.HORIZONTAL,
-            false
-        )
+        recyclerViewCast.layoutManager = LinearLayoutManager(this@DetailActivity, LinearLayoutManager.HORIZONTAL, false)
         recyclerViewCast.adapter = castAdapter
         castAdapter.notifyDataSetChanged()
         loadJSONCast()
@@ -264,11 +264,7 @@ class DetailActivity : AppCompatActivity() {
         recyclerViewCrew = findViewById(R.id.recycler_view_crew)
         crewList = ArrayList()
         crewAdapter = CrewAdapter(this, crewList)
-        recyclerViewCrew.layoutManager = LinearLayoutManager(
-            this@DetailActivity,
-            LinearLayoutManager.HORIZONTAL,
-            false
-        )
+        recyclerViewCrew.layoutManager = LinearLayoutManager(this@DetailActivity, LinearLayoutManager.HORIZONTAL, false)
         recyclerViewCrew.adapter = crewAdapter
         crewAdapter.notifyDataSetChanged()
         loadJSONCrew()
@@ -280,21 +276,14 @@ class DetailActivity : AppCompatActivity() {
         val trailerCardView: CardView = findViewById(R.id.card_view_trailer)
         try {
             if (BuildConfig.THE_MOVIE_DB_API_TOKEN.isEmpty()) {
-                Toast.makeText(
-                    this@DetailActivity,
-                    "Please obtain API Key first",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@DetailActivity, "Please obtain API Key first", Toast.LENGTH_SHORT).show()
                 return
             }
             val client = Client()
             val service = client.getClient().create(Service::class.java)
             val call = service.getMovieTrailer(movieId, BuildConfig.THE_MOVIE_DB_API_TOKEN)
             call!!.enqueue(object : Callback<TrailerResponse?> {
-                override fun onResponse(
-                    call: Call<TrailerResponse?>,
-                    response: Response<TrailerResponse?>
-                ) {
+                override fun onResponse(call: Call<TrailerResponse?>, response: Response<TrailerResponse?>) {
                     val trailers: List<Trailer> = response.body()!!.getResults()
                     val trailer = trailers[0]
                     title.text = trailer.getName()
@@ -326,21 +315,14 @@ class DetailActivity : AppCompatActivity() {
         val movieId = intent.extras!!.getInt("id")
         try {
             if (BuildConfig.THE_MOVIE_DB_API_TOKEN.isEmpty()) {
-                Toast.makeText(
-                    this@DetailActivity,
-                    "Please obtain API Key first",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@DetailActivity, "Please obtain API Key first", Toast.LENGTH_SHORT).show()
                 return
             }
             val client = Client()
             val service = client.getClient().create(Service::class.java)
             val call = service.getCredits(movieId, BuildConfig.THE_MOVIE_DB_API_TOKEN)
             call!!.enqueue(object : Callback<CreditResponse?> {
-                override fun onResponse(
-                    call: Call<CreditResponse?>,
-                    response: Response<CreditResponse?>
-                ) {
+                override fun onResponse(call: Call<CreditResponse?>, response: Response<CreditResponse?>) {
                     val casts: List<Cast> = response.body()!!.getCast()
                     recyclerViewCast.adapter = CastAdapter(applicationContext, casts)
                     recyclerViewCast.smoothScrollToPosition(0)
@@ -365,21 +347,14 @@ class DetailActivity : AppCompatActivity() {
         val movieId = intent.extras!!.getInt("id")
         try {
             if (BuildConfig.THE_MOVIE_DB_API_TOKEN.isEmpty()) {
-                Toast.makeText(
-                    this@DetailActivity,
-                    "Please obtain API Key first",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@DetailActivity, "Please obtain API Key first", Toast.LENGTH_SHORT).show()
                 return
             }
             val client = Client()
             val service = client.getClient().create(Service::class.java)
             val call = service.getCredits(movieId, BuildConfig.THE_MOVIE_DB_API_TOKEN)
             call!!.enqueue(object : Callback<CreditResponse?> {
-                override fun onResponse(
-                    call: Call<CreditResponse?>,
-                    response: Response<CreditResponse?>
-                ) {
+                override fun onResponse(call: Call<CreditResponse?>, response: Response<CreditResponse?>) {
                     val crews: List<Crew> = response.body()!!.getCrew()
                     recyclerViewCrew.adapter = CrewAdapter(applicationContext, crews)
                     recyclerViewCrew.smoothScrollToPosition(0)
@@ -387,11 +362,7 @@ class DetailActivity : AppCompatActivity() {
 
                 override fun onFailure(call: Call<CreditResponse?>, t: Throwable) {
                     Log.d("Error", t.message.toString())
-                    Toast.makeText(
-                        this@DetailActivity,
-                        "Error fetching crew data",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this@DetailActivity, "Error fetching crew data", Toast.LENGTH_SHORT).show()
                 }
             })
         } catch (e: Exception) {
@@ -404,21 +375,14 @@ class DetailActivity : AppCompatActivity() {
         val movieId = intent.extras!!.getInt("id")
         try {
             if (BuildConfig.THE_MOVIE_DB_API_TOKEN.isEmpty()) {
-                Toast.makeText(
-                    this@DetailActivity,
-                    "Please obtain API Key first",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@DetailActivity, "Please obtain API Key first", Toast.LENGTH_SHORT).show()
                 return
             }
             val client = Client()
             val service = client.getClient().create(Service::class.java)
             val call = service.getMovieDetails(movieId, BuildConfig.THE_MOVIE_DB_API_TOKEN)
             call!!.enqueue(object : Callback<MovieDetailResponse?> {
-                override fun onResponse(
-                    call: Call<MovieDetailResponse?>,
-                    response: Response<MovieDetailResponse?>
-                ) {
+                override fun onResponse(call: Call<MovieDetailResponse?>, response: Response<MovieDetailResponse?>) {
                     tagline.text = response.body()!!.getTagline()
                     runtime.text = response.body()!!.getRuntime().toString() + " mins"
                     if (response.body()!!.getTagline() == "") {
@@ -429,10 +393,17 @@ class DetailActivity : AppCompatActivity() {
                     }
                     val movieDetailObjects: List<MovieDetailObject> = response.body()!!.getGenres()
                     val studios: List<MovieDetailObject> = response.body()!!.getStudios()
-                    recyclerViewGenre.adapter = MovieObjectAdapter(
-                        applicationContext,
-                        movieDetailObjects
-                    )
+                    val spokenLanguages: List<MovieDetailObject> = response.body()!!.getSpokenLanguages()
+                    var lang = ""
+                    for (language in spokenLanguages.indices) {
+                        lang = if(language == spokenLanguages.size - 1) {
+                            lang + spokenLanguages[language].getLanguage()
+                        } else {
+                            lang + spokenLanguages[language].getLanguage() + ", "
+                        }
+                    }
+                    languages.text = lang
+                    recyclerViewGenre.adapter = MovieObjectAdapter(applicationContext, movieDetailObjects)
                     recyclerViewStudio.adapter = MovieObjectAdapter(applicationContext, studios)
                     recyclerViewGenre.smoothScrollToPosition(0)
                     recyclerViewStudio.smoothScrollToPosition(0)
@@ -441,10 +412,7 @@ class DetailActivity : AppCompatActivity() {
                 override fun onFailure(call: Call<MovieDetailResponse?>, t: Throwable) {
                     Log.d("Error", t.message.toString())
                     Toast.makeText(
-                        this@DetailActivity,
-                        "Error fetching movie detail data",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                        this@DetailActivity, "Error fetching movie detail data", Toast.LENGTH_SHORT).show()
                 }
             })
         } catch (e: Exception) {
@@ -457,7 +425,7 @@ class DetailActivity : AppCompatActivity() {
         val favoriteList = FavoriteList()
         favoriteList.movieid = intent.extras!!.getInt("id")
         favoriteList.mtitle = nameOfMovie.text.toString().trim()
-        favoriteList.posterpath = intent.extras!!.getString("poster_path")
+        favoriteList.posterpath = intent.extras!!.getString("backdrop_path")
         favoriteList.overview = plotSynopsis.text.toString().trim()
         favoriteList.releasedate = releaseDate.text.toString().trim()
         favoriteDatabase.favoriteDao().insert(favoriteList)
@@ -467,7 +435,7 @@ class DetailActivity : AppCompatActivity() {
         val favoriteList = FavoriteList()
         favoriteList.movieid = intent.extras!!.getInt("id")
         favoriteList.mtitle = nameOfMovie.text.toString().trim()
-        favoriteList.posterpath = intent.extras!!.getString("poster_path")
+        favoriteList.posterpath = intent.extras!!.getString("backdrop_path")
         favoriteList.overview = plotSynopsis.text.toString().trim()
         favoriteList.releasedate = releaseDate.text.toString().trim()
         favoriteDatabase.favoriteDao().delete(favoriteList)

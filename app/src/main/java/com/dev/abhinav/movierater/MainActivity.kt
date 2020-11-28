@@ -158,9 +158,13 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             }
             val client = Client()
             val service = client.getClient().create(Service::class.java)
+            val map: HashMap<String?, String?> = HashMap()
+            map["api"] = BuildConfig.THE_MOVIE_DB_API_TOKEN
+            map["page"] = "2"
             val call = service.getPopularMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN)
             call!!.enqueue(object : Callback<MoviesResponse?> {
                 override fun onResponse(call: Call<MoviesResponse?>, response: Response<MoviesResponse?>) {
+                    Log.d("abc", response.toString())
                     val movies: List<Movie> = response.body()!!.getResults()
                     recyclerView.adapter = MoviesAdapter(applicationContext, movies)
                     recyclerView.smoothScrollToPosition(0)
@@ -172,8 +176,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
 
                 override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
                     Log.d("Error", t.message.toString())
-                    Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT).show()
                 }
             })
         } catch (e: Exception) {
@@ -205,8 +208,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
 
                 override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
                     Log.d("Error", t.message.toString())
-                    Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT).show()
                 }
             })
         } catch (e: Exception) {

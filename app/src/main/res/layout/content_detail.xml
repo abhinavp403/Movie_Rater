@@ -76,6 +76,17 @@
                         android:layout_toEndOf="@+id/releasedate"
                         android:textSize="14sp"
                         android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/language"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/layout_margin_left"
+                        android:padding="@dimen/padding_layout"
+                        android:layout_marginTop="@dimen/layout_margin_top"
+                        android:layout_below="@+id/releasedate"
+                        android:textSize="14sp"
+                        android:textColor="@color/black" />
                 </RelativeLayout>
 
                 <View
@@ -87,6 +98,18 @@
                     android:background="#c0c0c0"/>
 
                 <TextView
+                    android:id="@+id/synopsis"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/synopsis"
+                    android:layout_marginStart="@dimen/layout_margin_left"
+                    android:layout_marginTop="@dimen/layout_margin_top"
+                    android:textSize="22sp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/black"
+                    android:layout_below="@+id/rl2"/>
+
+                <TextView
                     android:id="@+id/tagline"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -96,7 +119,7 @@
                     android:textSize="14sp"
                     android:textAllCaps="true"
                     android:textColor="@color/black"
-                    android:layout_below="@+id/rl2"/>
+                    android:layout_below="@+id/synopsis"/>
 
                 <TextView
                     android:id="@+id/plotsynopsis"
@@ -320,6 +343,27 @@
                     android:layout_height="1dp"
                     android:background="#c0c0c0"/>
 
+                <TextView
+                    android:id="@+id/review"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/review"
+                    android:layout_marginStart="@dimen/layout_margin_left"
+                    android:layout_marginTop="@dimen/layout_margin_top"
+                    android:textSize="22sp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/black"
+                    android:layout_below="@+id/recycler_view_genre"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_view_review"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/layout_margin_left"
+                    android:scrollbars="horizontal"
+                    android:clipToPadding="false"
+                    android:layout_below="@+id/review" />
+
             </RelativeLayout>
         </androidx.core.widget.NestedScrollView>
     </LinearLayout>
@@ -355,9 +399,8 @@
             android:elevation="16dp"
             android:focusable="true"
             android:visibility="invisible"
-            app:backgroundTint="#ffffff"
             app:pressedTranslationZ="12dp"
-            app:srcCompat="@android:drawable/ic_btn_speak_now"/>
+            app:srcCompat="@drawable/ic_baseline_sticky_note_24"/>
 
         <TextView
             android:id="@+id/rate_movie"
@@ -386,9 +429,8 @@
             android:elevation="16dp"
             android:focusable="true"
             android:visibility="invisible"
-            app:backgroundTint="#ffffff"
             app:pressedTranslationZ="12dp"
-            app:srcCompat="@android:drawable/ic_menu_compass" />
+            app:srcCompat="@drawable/ic_baseline_star_rate_24" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
@@ -403,8 +445,7 @@
             android:elevation="16dp"
             android:focusable="true"
             android:visibility="visible"
-            app:backgroundTint="#ffffff"
             app:pressedTranslationZ="12dp"
-            app:srcCompat="@android:drawable/ic_menu_add" />
+            app:srcCompat="@drawable/ic_baseline_add_circle_24" />
     </RelativeLayout>
 </RelativeLayout>
