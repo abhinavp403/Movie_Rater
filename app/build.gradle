@@ -81,6 +81,9 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:3.1.0'
 
     //AWS Amplify
+    implementation 'com.amazonaws:aws-android-sdk-core:2.6.0'
+    implementation 'com.amazonaws:aws-android-sdk-ddb:2.6.0'
+    implementation 'com.amazonaws:aws-android-sdk-ddb-document:2.6.0'
     implementation 'com.amplifyframework:core:1.6.4'
     implementation 'com.amplifyframework:aws-datastore:1.6.4'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.1'

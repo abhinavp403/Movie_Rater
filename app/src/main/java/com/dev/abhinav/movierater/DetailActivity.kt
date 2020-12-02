@@ -2,6 +2,7 @@ package com.dev.abhinav.movierater
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.media.Rating
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -15,6 +16,8 @@ import androidx.appcompat.widget.Toolbar
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.amplifyframework.core.Amplify
+import com.amplifyframework.core.AmplifyConfiguration.builder
 import com.bumptech.glide.Glide
 import com.dev.abhinav.movierater.adapter.CastAdapter
 import com.dev.abhinav.movierater.adapter.CrewAdapter
@@ -34,6 +37,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.stream.DoubleStream.builder
 import kotlin.collections.ArrayList
 
 class DetailActivity : AppCompatActivity() {
@@ -70,7 +74,6 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var recyclerViewStudio: RecyclerView
     private lateinit var studioList: List<MovieDetailObject>
     private lateinit var movieObjectAdapter: MovieObjectAdapter
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -224,6 +227,12 @@ class DetailActivity : AppCompatActivity() {
             builder.setView(dialogLayout)
             builder.setPositiveButton("OK") { dialog, _ ->
                 Toast.makeText(applicationContext, "Rating is " + ratingBar.rating, Toast.LENGTH_SHORT).show()
+//                val item = Rating.builder().rate(ratingBar.rating).build()
+//                Amplify.DataStore.save(
+//                        item,
+//                        { success -> Log.i("Amplify", "Saved item: " + success.item().name) },
+//                        { error -> Log.e("Amplify", "Could not save item to DataStore", error) }
+//                )
                 dialog.dismiss()
             }
             builder.setNegativeButton("Cancel") { dialog, _ ->

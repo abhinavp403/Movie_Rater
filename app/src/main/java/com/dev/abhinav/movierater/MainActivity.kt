@@ -117,7 +117,6 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             override fun doInBackground(vararg params: Void?): Void? {
                 movieList.clear()
                 val favoriteList = favoriteDatabase.favoriteDao().getAll()
-                Log.d("abc", favoriteList.toString())
                 for (faves in favoriteList) {
                     val movie = Movie()
                     faves.movieid?.let { movie.setId(it) }
@@ -127,7 +126,6 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
                     faves.releasedate?.let { movie.setReleaseDate(it) }
                     movieList.add(movie)
                 }
-                Log.d("abc2", favoriteList.toString())
                 return null
             }
 
@@ -158,27 +156,35 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             }
             val client = Client()
             val service = client.getClient().create(Service::class.java)
+            val movies = arrayListOf<Movie>()
             val map: HashMap<String?, String?> = HashMap()
-            map["api"] = BuildConfig.THE_MOVIE_DB_API_TOKEN
-            map["page"] = "2"
-            val call = service.getPopularMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN)
-            call!!.enqueue(object : Callback<MoviesResponse?> {
-                override fun onResponse(call: Call<MoviesResponse?>, response: Response<MoviesResponse?>) {
-                    Log.d("abc", response.toString())
-                    val movies: List<Movie> = response.body()!!.getResults()
-                    recyclerView.adapter = MoviesAdapter(applicationContext, movies)
-                    recyclerView.smoothScrollToPosition(0)
-                    if (swipeContainer.isRefreshing) {
-                        swipeContainer.isRefreshing = false
+            val pageList = mutableListOf<String>()
+            for( i in 1..500) {
+                pageList.add(i.toString())
+            }
+            for (page in pageList) {
+                map["api_key"] = BuildConfig.THE_MOVIE_DB_API_TOKEN
+                map["page"] = page
+                val call2 = service.getPopularMovies2(map)
+                call2!!.enqueue(object : Callback<MoviesResponse?> {
+                    override fun onResponse(call: Call<MoviesResponse?>, response: Response<MoviesResponse?>) {
+                        for (movie in response.body()!!.getResults()) {
+                            movies.add(movie)
+                        }
+                        recyclerView.adapter = MoviesAdapter(applicationContext, movies)
+                        recyclerView.smoothScrollToPosition(0)
+                        if (swipeContainer.isRefreshing) {
+                            swipeContainer.isRefreshing = false
+                        }
+                        progressDialog.dismiss()
                     }
-                    progressDialog.dismiss()
-                }
 
-                override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
-                    Log.d("Error", t.message.toString())
-                    Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT).show()
-                }
-            })
+                    override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
+                        Log.d("Error", t.message.toString())
+                        Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT).show()
+                    }
+                })
+            }
         } catch (e: Exception) {
             Log.d("Error", e.message.toString())
             Toast.makeText(this@MainActivity, e.toString(), Toast.LENGTH_SHORT).show()
