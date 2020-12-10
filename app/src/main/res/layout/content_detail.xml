@@ -201,7 +201,7 @@
 
                 <TextView
                     android:id="@+id/rating"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/rating"
                     android:layout_marginStart="@dimen/layout_margin_left"
@@ -211,6 +211,18 @@
                     android:textColor="@color/black"
                     android:layout_below="@+id/card_view_trailer"/>
 
+                <TextView
+                    android:id="@+id/rating_total"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/layout_margin_left"
+                    android:layout_marginTop="@dimen/layout_margin_top"
+                    android:textSize="22sp"
+                    android:textColor="@color/black"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@+id/card_view_trailer"
+                    android:layout_toEndOf="@+id/rating"/>
+
                 <RatingBar
                     android:id="@+id/ratingbar"
                     android:layout_width="wrap_content"
@@ -218,8 +230,20 @@
                     android:layout_centerInParent="true"
                     android:numStars="5"
                     android:stepSize="0.5"
-                    android:progressTint="#D4AF37"
+                    android:theme="@style/CustomRatingBar"
                     android:layout_below="@id/rating"/>
+
+                <TextView
+                    android:id="@+id/avg_rating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/layout_margin_left"
+                    android:layout_marginTop="@dimen/layout_margin_top"
+                    android:textSize="22sp"
+                    android:textColor="@color/black"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@+id/rating"
+                    android:layout_toEndOf="@+id/ratingbar"/>
 
                 <View
                     android:id="@+id/view5"
@@ -354,6 +378,18 @@
                     android:textAllCaps="true"
                     android:textColor="@color/black"
                     android:layout_below="@+id/recycler_view_genre"/>
+
+                <TextView
+                    android:id="@+id/review_total"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/layout_margin_left"
+                    android:layout_marginTop="@dimen/layout_margin_top"
+                    android:textSize="22sp"
+                    android:textColor="@color/black"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@+id/recycler_view_genre"
+                    android:layout_toEndOf="@+id/review"/>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recycler_view_review"

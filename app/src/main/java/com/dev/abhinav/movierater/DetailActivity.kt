@@ -2,7 +2,6 @@ package com.dev.abhinav.movierater
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.media.Rating
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -16,12 +15,11 @@ import androidx.appcompat.widget.Toolbar
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.amplifyframework.core.Amplify
-import com.amplifyframework.core.AmplifyConfiguration.builder
 import com.bumptech.glide.Glide
 import com.dev.abhinav.movierater.adapter.CastAdapter
 import com.dev.abhinav.movierater.adapter.CrewAdapter
 import com.dev.abhinav.movierater.adapter.MovieObjectAdapter
+import com.dev.abhinav.movierater.adapter.ReviewAdapter
 import com.dev.abhinav.movierater.api.Client
 import com.dev.abhinav.movierater.api.Service
 import com.dev.abhinav.movierater.data.FavoriteDatabase
@@ -32,12 +30,12 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.database.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.stream.DoubleStream.builder
 import kotlin.collections.ArrayList
 
 class DetailActivity : AppCompatActivity() {
@@ -49,10 +47,14 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var releaseDate: TextView
     private lateinit var imageView: ImageView
     private lateinit var ratingBar: RatingBar
+    private lateinit var avgRating: TextView
+    private lateinit var ratingTotalNumber: TextView
+    private lateinit var reviewTotalNumber: TextView
     private lateinit var favoriteDatabase: FavoriteDatabase
     private lateinit var fabMain: FloatingActionButton
     private lateinit var fab1: FloatingActionButton
     private lateinit var fab2: FloatingActionButton
+    private var movieId: Int = 0
     private var isOpen: Boolean = false
     private lateinit var fabOpen: Animation
     private lateinit var fabClose: Animation
@@ -68,6 +70,10 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var recyclerViewCrew: RecyclerView
     private lateinit var crewAdapter: CrewAdapter
     private lateinit var crewList: List<Crew>
+
+    private lateinit var recyclerViewReview: RecyclerView
+    private lateinit var reviewAdapter: ReviewAdapter
+    private lateinit var reviewList: List<String>
 
     private lateinit var recyclerViewGenre: RecyclerView
     private lateinit var movieDetailObjectList: List<MovieDetailObject>
@@ -95,6 +101,9 @@ class DetailActivity : AppCompatActivity() {
         languages = findViewById(R.id.language)
         releaseDate = findViewById(R.id.releasedate)
         ratingBar = findViewById(R.id.ratingbar)
+        avgRating = findViewById(R.id.avg_rating)
+        ratingTotalNumber = findViewById(R.id.rating_total)
+        reviewTotalNumber = findViewById(R.id.review_total)
         fabMain = findViewById(R.id.fab)
         fab1 = findViewById(R.id.fab1)
         fab2 = findViewById(R.id.fab2)
@@ -111,6 +120,7 @@ class DetailActivity : AppCompatActivity() {
 
         val intent = intent
         if (intent.hasExtra("title")) {
+            movieId = intent.extras!!.getInt("id")
             val thumbnail = intent.extras!!.getString("backdrop_path")
             val movieName = intent.extras!!.getString("title")
             val synopsis = intent.extras!!.getString("overview")
@@ -124,6 +134,48 @@ class DetailActivity : AppCompatActivity() {
             val formatter = SimpleDateFormat("dd MMM yyyy")
             val dateStr = formatter.format(date!!)
             releaseDate.text = dateStr.toString()
+
+            val ref = FirebaseDatabase.getInstance().reference.child("ratings").child(movieId.toString())
+            ref.addValueEventListener(object: ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    var ctr = 0
+                    var sum = 0.0
+                    for (snapshot in dataSnapshot.children) {
+                        val ratingObj = snapshot.getValue(Rating::class.java)
+                        sum += ratingObj!!.rating
+                        ctr++
+                    }
+                    if (ctr > 0) {
+                        ratingBar.rating = (sum / ctr).toFloat()
+                        ratingTotalNumber.text = "($ctr)"
+                        avgRating.text = String.format("%.2f", (sum / ctr).toFloat())
+                    }
+                    ratingBar.isEnabled = false
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                }
+            })
+
+            val ref2 = FirebaseDatabase.getInstance().reference.child("reviews").child(movieId.toString())
+            recyclerViewReview = findViewById(R.id.recycler_view_review)
+            recyclerViewReview.layoutManager = LinearLayoutManager(this@DetailActivity)
+            ref2.addValueEventListener(object: ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    reviewList = arrayListOf()
+                    for(snapshot in dataSnapshot.children) {
+                        val reviewObj = snapshot.getValue(Review::class.java)
+                        (reviewList as ArrayList<String>).add(reviewObj!!.review)
+                    }
+                    reviewAdapter = ReviewAdapter(applicationContext, reviewList)
+                    recyclerViewReview.adapter = reviewAdapter
+                    reviewAdapter.notifyDataSetChanged()
+                    reviewTotalNumber.text = "(" + reviewList.size + ")"
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                }
+            })
         } else {
             Toast.makeText(this@DetailActivity, "No API Data", Toast.LENGTH_SHORT).show()
         }
@@ -211,6 +263,12 @@ class DetailActivity : AppCompatActivity() {
             builder.setView(dialogLayout)
             builder.setPositiveButton("OK") { dialog, _ ->
                 dialog.dismiss()
+                val ref: DatabaseReference = FirebaseDatabase.getInstance().reference.child("reviews").child(movieId.toString())
+                val map = HashMap<String, Any>()
+                val rateKey = ref.push().key!!
+                map["id"] = rateKey
+                map["review"] = textBox.text.toString()
+                ref.child(rateKey).updateChildren(map)
             }
             builder.setNegativeButton("Cancel") { dialog, _ ->
                 dialog.cancel()
@@ -227,13 +285,12 @@ class DetailActivity : AppCompatActivity() {
             builder.setView(dialogLayout)
             builder.setPositiveButton("OK") { dialog, _ ->
                 Toast.makeText(applicationContext, "Rating is " + ratingBar.rating, Toast.LENGTH_SHORT).show()
-//                val item = Rating.builder().rate(ratingBar.rating).build()
-//                Amplify.DataStore.save(
-//                        item,
-//                        { success -> Log.i("Amplify", "Saved item: " + success.item().name) },
-//                        { error -> Log.e("Amplify", "Could not save item to DataStore", error) }
-//                )
-                dialog.dismiss()
+                val ref: DatabaseReference = FirebaseDatabase.getInstance().reference.child("ratings").child(movieId.toString())
+                val map = HashMap<String, Any>()
+                val rateKey = ref.push().key!!
+                map["id"] = rateKey
+                map["rating"] = ratingBar.rating
+                ref.child(rateKey).updateChildren(map)
             }
             builder.setNegativeButton("Cancel") { dialog, _ ->
                 dialog.cancel()
@@ -307,11 +364,7 @@ class DetailActivity : AppCompatActivity() {
 
                 override fun onFailure(call: Call<TrailerResponse?>, t: Throwable) {
                     Log.d("Error", t.message.toString())
-                    Toast.makeText(
-                        this@DetailActivity,
-                        "Error fetching trailer data",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this@DetailActivity, "Error fetching trailer data", Toast.LENGTH_SHORT).show()
                 }
             })
         } catch (e: Exception) {
@@ -339,11 +392,7 @@ class DetailActivity : AppCompatActivity() {
 
                 override fun onFailure(call: Call<CreditResponse?>, t: Throwable) {
                     Log.d("Error", t.message.toString())
-                    Toast.makeText(
-                        this@DetailActivity,
-                        "Error fetching cast data",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this@DetailActivity, "Error fetching cast data", Toast.LENGTH_SHORT).show()
                 }
             })
         } catch (e: Exception) {
@@ -371,7 +420,7 @@ class DetailActivity : AppCompatActivity() {
 
                 override fun onFailure(call: Call<CreditResponse?>, t: Throwable) {
                     Log.d("Error", t.message.toString())
-                    Toast.makeText(this@DetailActivity, "Error fetching crew data", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DetailActivity,"Error fetching crew data",Toast.LENGTH_SHORT).show()
                 }
             })
         } catch (e: Exception) {
@@ -402,17 +451,21 @@ class DetailActivity : AppCompatActivity() {
                     }
                     val movieDetailObjects: List<MovieDetailObject> = response.body()!!.getGenres()
                     val studios: List<MovieDetailObject> = response.body()!!.getStudios()
-                    val spokenLanguages: List<MovieDetailObject> = response.body()!!.getSpokenLanguages()
+                    val spokenLanguages: List<MovieDetailObject> =
+                        response.body()!!.getSpokenLanguages()
                     var lang = ""
                     for (language in spokenLanguages.indices) {
-                        lang = if(language == spokenLanguages.size - 1) {
+                        lang = if (language == spokenLanguages.size - 1) {
                             lang + spokenLanguages[language].getLanguage()
                         } else {
                             lang + spokenLanguages[language].getLanguage() + ", "
                         }
                     }
                     languages.text = lang
-                    recyclerViewGenre.adapter = MovieObjectAdapter(applicationContext, movieDetailObjects)
+                    recyclerViewGenre.adapter = MovieObjectAdapter(
+                        applicationContext,
+                        movieDetailObjects
+                    )
                     recyclerViewStudio.adapter = MovieObjectAdapter(applicationContext, studios)
                     recyclerViewGenre.smoothScrollToPosition(0)
                     recyclerViewStudio.smoothScrollToPosition(0)
@@ -420,8 +473,7 @@ class DetailActivity : AppCompatActivity() {
 
                 override fun onFailure(call: Call<MovieDetailResponse?>, t: Throwable) {
                     Log.d("Error", t.message.toString())
-                    Toast.makeText(
-                        this@DetailActivity, "Error fetching movie detail data", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DetailActivity, "Error fetching movie detail data", Toast.LENGTH_SHORT).show()
                 }
             })
         } catch (e: Exception) {
