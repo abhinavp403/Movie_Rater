@@ -8,7 +8,8 @@ https://developers.themoviedb.org/3/
 Libraries used:
 1) Glide
 2) Retrofit
-3) Room
-4) AWS Amplify
-5) AWS App Sync
-6) Firebase
+3) OkHttpClient
+4) Room
+5) AWS Amplify
+6) AWS App Sync
+7) Firebase
