@@ -351,14 +351,16 @@ class DetailActivity : AppCompatActivity() {
             call!!.enqueue(object : Callback<TrailerResponse?> {
                 override fun onResponse(call: Call<TrailerResponse?>, response: Response<TrailerResponse?>) {
                     val trailers: List<Trailer> = response.body()!!.getResults()
-                    val trailer = trailers[0]
-                    title.text = trailer.getName()
-                    trailerCardView.setOnClickListener {
-                        val videoid = trailer.getKey()
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$videoid"))
-                        intent.putExtra("video_id", videoid)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        applicationContext.startActivity(intent)
+                    if(trailers.isNotEmpty()) {
+                        val trailer = trailers[0]
+                        title.text = trailer.getName()
+                        trailerCardView.setOnClickListener {
+                            val videoid = trailer.getKey()
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$videoid"))
+                            intent.putExtra("video_id", videoid)
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            applicationContext.startActivity(intent)
+                        }
                     }
                 }
 
