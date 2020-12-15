@@ -13,13 +13,16 @@ interface Service {
     fun getMovieDetails(@Path("movie_id") id: Int?, @Query("api_key") apiKey: String?): Call<MovieDetailResponse?>?
 
     @GET("movie/popular")
-    fun getPopularMovies2(@QueryMap params: HashMap<String?, String?>): Call<MoviesResponse?>?
+    fun getPopularMoviesAllPages(@QueryMap params: HashMap<String?, String?>): Call<MoviesResponse?>?
 
     @GET("movie/popular")
-    fun getPopularMovies(@Query("api_key") apiKey: String?): Call<MoviesResponse?>?
+    fun getTopRatedMoviesAllPages(@QueryMap params: HashMap<String?, String?>): Call<MoviesResponse?>?
+
+    @GET("movie/popular")
+    fun getPopularMovies(@Query("api_key") apiKey: String?, @Query("page") pageIndex: Int?): Call<MoviesResponse?>?
 
     @GET("movie/top_rated")
-    fun getTopRatedMovies(@Query("api_key") apiKey: String?): Call<MoviesResponse?>?
+    fun getTopRatedMovies(@Query("api_key") apiKey: String?, @Query("page") pageIndex: Int?): Call<MoviesResponse?>?
 
     @GET("movie/{movie_id}/videos")
     fun getMovieTrailer(@Path("movie_id") id: Int?, @Query("api_key") apiKey: String?): Call<TrailerResponse?>?

@@ -44,6 +44,8 @@
                 android:paddingStart="@dimen/movie_title_padding"
                 android:paddingEnd="@dimen/movie_title_padding"
                 android:paddingTop="@dimen/movie_title_padding"
+                android:gravity="bottom"
+                android:layout_alignParentBottom="true"
                 android:textColor="@color/black"
                 android:textSize="12sp"/>
         </RelativeLayout>

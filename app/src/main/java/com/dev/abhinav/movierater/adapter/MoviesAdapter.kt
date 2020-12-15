@@ -11,11 +11,20 @@ import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestListener
 import com.dev.abhinav.movierater.DetailActivity
 import com.dev.abhinav.movierater.R
+import com.dev.abhinav.movierater.SettingsActivity
 import com.dev.abhinav.movierater.model.Movie
 
 class MoviesAdapter(private val context: Context, private val movieList: List<Movie>) : RecyclerView.Adapter<MoviesAdapter.ViewHolder>() {
+
+    private var item = 0
+    private var loading = 1
+    private var BASE_URL_IMG = "https://image.tmdb.org/t/p/w150"
+    //"http://image.tmdb.org/t/p/w500$posterPath"
+    private var isLoadingAdded = false
 
     inner class ViewHolder(@NonNull itemView: View) : RecyclerView.ViewHolder(itemView) {
         var title: TextView = itemView.findViewById(R.id.title)
@@ -42,9 +51,27 @@ class MoviesAdapter(private val context: Context, private val movieList: List<Mo
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+//        var viewHolder: RecyclerView.ViewHolder? = null
+//        var inflater = LayoutInflater.from(context)
+//        when(viewType) {
+//            item -> {
+//                viewHolder = getViewHolder(parent, inflater)
+//            }
+//            loading -> {
+//                var view2 = inflater.inflate(R.layout.movie_card, parent, false)
+//                viewHolder = LoadingVH(view2)
+//            }
+//        }
+//        return viewHolder
         val view = LayoutInflater.from(context).inflate(R.layout.movie_card, parent, false)
         return ViewHolder(view)
     }
+
+//    fun getViewHolder(parent: ViewGroup, inflater: LayoutInflater): RecyclerView.ViewHolder {
+//        var viewHolder: RecyclerView.ViewHolder? = null
+//        var view1 = inflater.inflate(R.layout.movie_card, parent, false)
+//        return viewHolder
+//    }
 
     override fun getItemCount(): Int {
         return movieList.size
@@ -54,6 +81,8 @@ class MoviesAdapter(private val context: Context, private val movieList: List<Mo
         holder.title.text = movieList[position].getTitle()
         val vote = movieList[position].getVoteAverage().toString()
         holder.userrating.text = vote
-        Glide.with(context).load(movieList[position].getPosterPath()).placeholder(R.drawable.loading).into(holder.thumbnail)
+        Glide.with(context).load(movieList[position].getPosterPath())
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .placeholder(R.drawable.loading).into(holder.thumbnail)
     }
 }

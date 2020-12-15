@@ -20,6 +20,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.dev.abhinav.movierater.adapter.MoviesAdapter
@@ -36,6 +37,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.logging.Handler
 
 class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -45,6 +47,15 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     private lateinit var progressDialog : ProgressDialog
     private lateinit var swipeContainer : SwipeRefreshLayout
     private lateinit var favoriteDatabase: FavoriteDatabase
+
+    private lateinit var linearLayoutManager: LinearLayoutManager
+    private var PAGE_START = 1
+    private var isLoading = false
+    private var isLastPage = false
+    private val TOTAL_PAGES = 500
+    private var currentPage = PAGE_START
+    private lateinit var service: Service
+
     private var cacheSize: Int = 10*1024*1024 //10mb
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,13 +99,38 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         adapter = MoviesAdapter(this, movieList)
 
         if(getActivity()!!.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            recyclerView.layoutManager = GridLayoutManager(this, 2)
+            linearLayoutManager = GridLayoutManager(this, 2)
         } else {
-            recyclerView.layoutManager = GridLayoutManager(this, 4)
+            linearLayoutManager = GridLayoutManager(this, 4)
         }
+        recyclerView.layoutManager = linearLayoutManager
         recyclerView.itemAnimator = DefaultItemAnimator()
         recyclerView.adapter = adapter
         adapter.notifyDataSetChanged()
+
+        recyclerView.addOnScrollListener(object : InfiniteScrollListener(linearLayoutManager) {
+            override fun loadMoreItems() {
+                isLoading = true
+                currentPage += 1
+                android.os.Handler().postDelayed({ loadNextPage() }, 1000)
+            }
+
+            override fun totalPageCount(): Int {
+                return TOTAL_PAGES
+            }
+
+            override fun isLoading(): Boolean {
+                return isLoading
+            }
+
+            override fun isLastPage(): Boolean {
+                return isLastPage
+            }
+        })
+
+        service = Client().getClient().create(Service::class.java)
+        loadFirstPage()
+
         //favoriteDatabase = FavoriteDatabase.getInstance(applicationContext)
         //favoriteDatabase.favoriteDao().deleteAll()
         //getAllFavorite()
@@ -117,6 +153,60 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
 
         favoriteDatabase = FavoriteDatabase.getInstance(applicationContext)
         getAllFavorite()
+    }
+
+    private fun loadFirstPage() {
+        callMoviesAPI()!!.enqueue(object : Callback<MoviesResponse?> {
+            override fun onResponse(call: Call<MoviesResponse?>, response: Response<MoviesResponse?>) {
+                val movies: List<Movie> = fetchResults(response)
+                recyclerView.adapter = MoviesAdapter(applicationContext, movies)
+                recyclerView.smoothScrollToPosition(0)
+                if (swipeContainer.isRefreshing) {
+                    swipeContainer.isRefreshing = false
+                }
+                if (currentPage <= TOTAL_PAGES) {
+                    //adapter.addLoadingFooter()
+                } else {
+                    isLastPage = true
+                }
+                progressDialog.dismiss()
+            }
+
+            override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
+                Log.d("Error", t.message.toString())
+                Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun fetchResults(response: Response<MoviesResponse?>): List<Movie> {
+        return response.body()!!.getResults()
+    }
+
+    private fun callMoviesAPI(): Call<MoviesResponse?>? {
+        return service.getPopularMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN, currentPage)
+    }
+
+    private fun loadNextPage() {
+        callMoviesAPI()!!.enqueue(object : Callback<MoviesResponse?> {
+            override fun onResponse(call: Call<MoviesResponse?>, response: Response<MoviesResponse?>) {
+                //adapter.removeLoadingFooter()
+                isLoading = false
+                val movies: List<Movie> = fetchResults(response)
+                recyclerView.adapter = MoviesAdapter(applicationContext, movies)
+                recyclerView.smoothScrollToPosition(0)
+                if (currentPage != TOTAL_PAGES) {
+                   // adapter.addLoadingFooter()
+                } else {
+                    isLastPage = true
+                }
+            }
+
+            override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
+                Log.d("Error", t.message.toString())
+                Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -171,26 +261,26 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             val cache = Cache(cacheDir, cacheSize.toLong())
             val okHttpClient = OkHttpClient.Builder()
                     .cache(cache)
-                    .addInterceptor(object: Interceptor {
+                    .addInterceptor(object : Interceptor {
                         override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
                             var request = chain.request()
-                            if(!isNetworkAvailable()) {
-                                val maxStale = 60*60*24*28
-                                request = request.newBuilder().header("Cache-Control", "public, only-if-cached, max-stale=$maxStale").build()
+                            if (!isNetworkAvailable()) {
+                                val maxStale = 60 * 60 * 24 * 28
+                                request = request.newBuilder().header(
+                                    "Cache-Control",
+                                    "public, only-if-cached, max-stale=$maxStale"
+                                ).build()
                             }
                             return chain.proceed(request)
                         }
                     })
                     .build()
-
             val retrofit = Retrofit.Builder()
                     .baseUrl("http://api.themoviedb.org/3/")
                     .client(okHttpClient)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build()
             val service = retrofit.create(Service::class.java)
-//            val client = Client()
-//            val service = client.getClient().create(Service::class.java)
             val movies = arrayListOf<Movie>()
             val map: HashMap<String?, String?> = HashMap()
             val pageList = mutableListOf<String>()
@@ -200,9 +290,12 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             for (page in pageList) {
                 map["api_key"] = BuildConfig.THE_MOVIE_DB_API_TOKEN
                 map["page"] = page
-                val call2 = service.getPopularMovies2(map)
-                call2!!.enqueue(object : Callback<MoviesResponse?> {
-                    override fun onResponse(call: Call<MoviesResponse?>, response: Response<MoviesResponse?>) {
+                val call = service.getPopularMoviesAllPages(map)
+                call!!.enqueue(object : Callback<MoviesResponse?> {
+                    override fun onResponse(
+                        call: Call<MoviesResponse?>,
+                        response: Response<MoviesResponse?>
+                    ) {
                         for (movie in response.body()!!.getResults()) {
                             movies.add(movie)
                         }
@@ -216,7 +309,8 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
 
                     override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
                         Log.d("Error", t.message.toString())
-                        Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 })
             }
@@ -233,25 +327,62 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
                 progressDialog.dismiss()
                 return
             }
-            val client = Client()
-            val service = client.getClient().create(Service::class.java)
-            val call = service.getTopRatedMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN)
-            call!!.enqueue(object : Callback<MoviesResponse?> {
-                override fun onResponse(call: Call<MoviesResponse?>, response: Response<MoviesResponse?>) {
-                    val movies: List<Movie> = response.body()!!.getResults()
-                    recyclerView.adapter = MoviesAdapter(applicationContext, movies)
-                    recyclerView.smoothScrollToPosition(0)
-                    if (swipeContainer.isRefreshing) {
-                        swipeContainer.isRefreshing = false
+            val cache = Cache(cacheDir, cacheSize.toLong())
+            val okHttpClient = OkHttpClient.Builder()
+                    .cache(cache)
+                    .addInterceptor(object : Interceptor {
+                        override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
+                            var request = chain.request()
+                            if (!isNetworkAvailable()) {
+                                val maxStale = 60 * 60 * 24 * 28
+                                request = request.newBuilder().header(
+                                    "Cache-Control",
+                                    "public, only-if-cached, max-stale=$maxStale"
+                                ).build()
+                            }
+                            return chain.proceed(request)
+                        }
+                    })
+                    .build()
+            val retrofit = Retrofit.Builder()
+                    .baseUrl("http://api.themoviedb.org/3/")
+                    .client(okHttpClient)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+            val service = retrofit.create(Service::class.java)
+            val movies = arrayListOf<Movie>()
+            val map: HashMap<String?, String?> = HashMap()
+            val pageList = mutableListOf<String>()
+            for( i in 1..500) {
+                pageList.add(i.toString())
+            }
+            for (page in pageList) {
+                map["api_key"] = BuildConfig.THE_MOVIE_DB_API_TOKEN
+                map["page"] = page
+                val call = service.getTopRatedMoviesAllPages(map)
+                call!!.enqueue(object : Callback<MoviesResponse?> {
+                    override fun onResponse(
+                        call: Call<MoviesResponse?>,
+                        response: Response<MoviesResponse?>
+                    ) {
+                        for (movie in response.body()!!.getResults()) {
+                            movies.add(movie)
+                        }
+                        recyclerView.adapter = MoviesAdapter(applicationContext, movies)
+                        recyclerView.smoothScrollToPosition(0)
+                        if (swipeContainer.isRefreshing) {
+                            swipeContainer.isRefreshing = false
+                        }
+                        progressDialog.dismiss()
                     }
-                    progressDialog.dismiss()
-                }
 
-                override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
-                    Log.d("Error", t.message.toString())
-                    Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT).show()
-                }
-            })
+                    override fun onFailure(call: Call<MoviesResponse?>, t: Throwable) {
+                        Log.d("Error", t.message.toString())
+                        Toast.makeText(this@MainActivity, "Error fetching data", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                })
+            }
         } catch (e: Exception) {
             Log.d("Error", e.message.toString())
             Toast.makeText(this@MainActivity, e.toString(), Toast.LENGTH_SHORT).show()
@@ -264,7 +395,10 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
 
     private fun checkSortOrder() {
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        when (preferences.getString(this.getString(R.string.pref_sort_order_key), this.getString(R.string.pref_most_popular))) {
+        when (preferences.getString(
+            this.getString(R.string.pref_sort_order_key),
+            this.getString(R.string.pref_most_popular)
+        )) {
             this.getString(R.string.pref_most_popular) -> {
                 loadJSON()
             }
